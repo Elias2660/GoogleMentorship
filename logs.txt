@@ -1,0 +1,17 @@
+Collecting pandas
+  Using cached pandas-2.2.0-cp39-cp39-macosx_11_0_arm64.whl.metadata (19 kB)
+Requirement already satisfied: numpy<2,>=1.22.4 in ./venv/lib/python3.9/site-packages (from pandas) (1.26.4)
+Collecting python-dateutil>=2.8.2 (from pandas)
+  Using cached python_dateutil-2.8.2-py2.py3-none-any.whl (247 kB)
+Collecting pytz>=2020.1 (from pandas)
+  Using cached pytz-2024.1-py2.py3-none-any.whl.metadata (22 kB)
+Collecting tzdata>=2022.7 (from pandas)
+  Downloading tzdata-2024.1-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas)
+  Using cached six-1.16.0-py2.py3-none-any.whl (11 kB)
+Using cached pandas-2.2.0-cp39-cp39-macosx_11_0_arm64.whl (11.8 MB)
+Using cached pytz-2024.1-py2.py3-none-any.whl (505 kB)
+Downloading tzdata-2024.1-py2.py3-none-any.whl (345 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 345.4/345.4 kB 6.4 MB/s eta 0:00:00
+Installing collected packages: pytz, tzdata, six, python-dateutil, pandas
+Successfully installed pandas-2.2.0 python-dateutil-2.8.2 pytz-2024.1 six-1.16.0 tzdata-2024.1
