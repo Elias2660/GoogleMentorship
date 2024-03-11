@@ -40,7 +40,7 @@ nest-asyncio==1.6.0
 networkx==3.2.1
 numpy==1.26.4
 openai==1.13.3
-packaging==23.2
+packaging==24.0
 pandas==2.2.1
 parso==0.8.3
 pexpect==4.9.0
