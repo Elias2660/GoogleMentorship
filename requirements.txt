@@ -75,4 +75,4 @@ typing_extensions==4.10.0
 tzdata==2024.1
 urllib3==2.2.1
 wcwidth==0.2.13
-zipp==3.17.0
+zipp==3.18.1
