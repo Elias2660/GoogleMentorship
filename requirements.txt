@@ -42,7 +42,7 @@ numpy==1.26.4
 openai==1.14.3
 packaging>=16.8
 pandas==2.2.1
-parso==0.8.3
+parso==0.8.4
 pexpect==4.9.0
 platformdirs==4.2.0
 prompt-toolkit==3.0.43
