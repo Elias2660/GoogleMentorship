@@ -5,7 +5,9 @@ import dotenv
 import asyncio
 import pandas as pd
 import numpy as np
+from pyppeteer.errors import TimeoutError
 from pyppeteer import launch
+import pyppeteer
 
 # ? getting the api keys
 
@@ -28,9 +30,7 @@ def get_data(
 ) -> list:
     final = []
     URL = f"https://www.googleapis.com/customsearch/v1?key={Google_API_KEY}&cx={Search_Engine_ID}&q={Query}"
-    response = requests.get(
-        f"https://www.googleapis.com/customsearch/v1?key={Google_API_KEY}&cx={Search_Engine_ID}&q={Query}"
-    )
+    response = requests.get(URL)
     for item in response.json()["items"]:
         final.append(item["link"])
     return final
@@ -40,20 +40,25 @@ def get_data(
 
 
 async def get_text(URL: str) -> str:
-    browser = await launch()
-    page = await browser.newPage()
-    await page.goto(URL)
-    content = await page.evaluate('() => document.querySelector("*").innerText')
-    await browser.close()
-    return content
+    try:
+        browser = await launch()
+        page = await browser.newPage()
+        await page.goto(URL, timeout=60000)
+        content = await page.evaluate('() => document.querySelector("*").innerText')
+        await browser.close()
+        return content
+    except TimeoutError:
+        browser = await pyppeteer.launch()
+        await browser.close()
+        return "Sorry, text did not work lmao"
 
 
-def get_encodings(text: str, model="gpt-4") -> list:
+def get_encodings(text: str, model=MODEL) -> list:
     encoding = tiktoken.encoding_for_model(model)
     return encoding.encode(text)
 
 
-def get_number_of_tokens(text: str, model="gpt-4") -> list:
+def get_number_of_tokens(text: str, model=MODEL) -> list:
     encoding = tiktoken.encoding_for_model(model)
     return len(encoding.encode(text))
 
@@ -146,8 +151,9 @@ def get_result(summarized_data: str, virus: str, model=MODEL) -> np.ndarray:
             {"role": "user", "content": command},
         ],
     )
-    array_return = np.full(shape=5, fill_value=np.nan)
+    array_return = np.full(shape=5, dtype=str, fill_value=np.nan)
     elements = completion.choices[0].message.content.split("\n")
+    print(completion.choices[0].message.content)
     array_return[0] = virus
     array_return[1], array_return[2] = elements[0].split(",")
     array_return[3] = elements[1]
@@ -183,6 +189,18 @@ def get_tokens_for_result(summarized_data: str, virus: str) -> int:
     return get_number_of_tokens(system_message + command)
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 if __name__ == "__main__":
     """
     if NUMBER is -1, then run for all elements in the dataset
@@ -194,24 +212,32 @@ if __name__ == "__main__":
     )
     virus = "HIV"
     Query = f"What is the R0 value of {virus}"
-    print("getting data")
+    
+    print(f"GETTING DATA")
     data = get_data(Query)
-    print("data found")
+    print(f"DATA FOUND")
+    
     summaried = ""
     for link in data:
-        print("getting data from link")
+        
+        print(f"GETTING DATA FROM LINK: {link}")
         text = asyncio.run(get_text(link))
-        print("gotten text")
+        print(f"GOTTEN TEXT")
+        
+        print(f"SUMMARIZING TEXT")
         summarized_text = f"Source: {link} \n {summarize(text)}"
+        print(f"SUMMARIZED")
+        
         print(summarized_text)
-        print("summarized")
+        
+        print(f"CHECKING FOR VALUES")
         if (
-            get_tokens_for_result(summaried, virus)
+            get_tokens_for_result(summaried, virus=virus)
             + get_number_of_tokens(summarized_text)
             < CONTEXT
         ):
             summaried += f"\n {summarized_text}"
         else:
             break
-    print("printing result")
-    print(get_result(summaried))
+    print(f"PRINTING RESULT")
+    print(get_result(summaried, virus=virus))
