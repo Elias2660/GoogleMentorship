@@ -2,12 +2,7 @@ import requests
 from openai import OpenAI
 import tiktoken
 import dotenv
-import asyncio
-import pandas as pd
-import numpy as np
-from pyppeteer.errors import TimeoutError
 from pyppeteer import launch
-import pyppeteer
 
 # ? getting the api keys
 
