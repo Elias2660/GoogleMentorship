@@ -154,6 +154,7 @@ def get_result(summarized_data: str, virus: str, model=MODEL) -> str:
     )
     return completion.choices[0].message.content
 
+
 def get_tokens_for_result(summarized_data: str, virus: str) -> int:
     system_message = f"""
     Write as an output no more words than specified. 

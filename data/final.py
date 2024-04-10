@@ -24,38 +24,30 @@ MAX_OUT = 4096
 
 
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
-if __name__ == "__main__":
-    """
-    if NUMBER is -1, then run for all elements in the dataset
-    else if then run the thing for the number of viruses that exist
-    """
+def getGPTAswer(virus: str) -> str:
 
-    data = pd.DataFrame(
-        columns=["Virus Name", "R0 Value", "Range of R0 Values", "Source1" "Source 2"]
-    )
-    virus = "monkeypox"
     Query = f"What is the R0 value of {virus}"
-    
+
     print(f"{bcolors.OKCYAN} GETTING DATA {bcolors.ENDC}")
     data = utils.get_data(Query)
     print(f"{bcolors.OKGREEN} DATA FOUND {bcolors.ENDC}")
-    
+
     summaried = ""
     for link in data:
-        
+
         print(f"{bcolors.OKCYAN} GETTING DATA FROM LINK:{bcolors.ENDC} {link} ")
-        
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         text = ""
@@ -67,13 +59,13 @@ if __name__ == "__main__":
             loop.run_until_complete(loop.shutdown_asyncgens())
             loop.close()
         print(f"{bcolors.OKGREEN} GOTTEN TEXT {bcolors.ENDC}")
-        
+
         print(f"{bcolors.OKCYAN} SUMMARIZING TEXT {bcolors.ENDC}")
         summarized_text = f"Source: {link} \n {utils.summarize(text)}"
         print(f"{bcolors.OKGREEN} SUMMARIZED {bcolors.ENDC}")
-        
+
         print(summarized_text)
-        
+
         print(f"{bcolors.OKCYAN} CHECKING FOR LENGTH {bcolors.ENDC}")
         if (
             utils.get_tokens_for_result(summaried, virus=virus)
@@ -85,5 +77,11 @@ if __name__ == "__main__":
         else:
             break
     print(f"{bcolors.OKCYAN} PRINTING RESULT {bcolors.ENDC}")
-    print(utils.get_result(summaried, virus=virus))
+    final = utils.get_result(summaried, virus=virus)
+    print(final)
     print(f"{bcolors.OKGREEN} RESULT PRINTED {bcolors.ENDC}")
+    return final
+
+
+if __name__ == "__main__":
+    getGPTAswer("COVID-19")
