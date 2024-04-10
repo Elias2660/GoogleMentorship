@@ -13,21 +13,11 @@ GOOGLE_API = dotenv.get_key("../.env", "GOOGLE_SEARCH_API")
 GPT_API = dotenv.get_key("../.env", "GPT_API")
 SEARCH_ENGINE_ID = dotenv.get_key("../.env", "SEARCH_ENGINE_ID")
 
-NUMBER = 5 # for testing purposes :3
+NUMBER = 5  # for testing purposes :3
 
-model = "gpt-4-turbo-preview"
-context = 128000
-max_out = 4096
-
-
-if __name__ == "__main__":
-    """
-    if NUMBER is -1, then run for all elements in the dataset
-    else if then run the thing for the number of viruses that exist
-    """
-    data = pd.DataFrame(columns =["Virus Name", "R0 Value", "Range of R0 Values", "Source1" "Source 2"])
-    
-# the data gathering steps
+MODEL = "gpt-4-turbo-preview"
+CONTEXT = 128000
+MAX_OUT = 4096
 
 
 # use  google search api to get  a list different search results
@@ -73,9 +63,10 @@ def get_number_of_tokens(text: str, model="gpt-4") -> list:
 
 def summarize(
     text: str,
-    token_limit=context,
-    goal="finding r0 values in relation to diseases",
-    model=model,
+    token_limit=CONTEXT,
+    goal="finding r0 values in relation to a disease",
+    additional_commands="none",
+    model=MODEL,
 ) -> str:
     """
     Given a lot of text, summarize it
@@ -90,9 +81,12 @@ def summarize(
     command = f"""
         Please summarize the following text into 7 or less sentences, paying special attention to the {goal}.
         Keep numbers related to {goal} accurate, and them within the context that was in the webpage.
-        
-        Here's the text to summarize:
+        Here's the text to summarize
+        ---------
         {text}
+        ----------
+        Here are any additional commands: {additional_commands}
+        
     """
     tokens = get_number_of_tokens(command + system_message)
     if tokens > token_limit:
@@ -117,7 +111,7 @@ def summarize(
     # use the extracted data to plug into the gpt
 
 
-def get_result(summarized_data: str, virus: str) -> np.ndarray:
+def get_result(summarized_data: str, virus: str, model=MODEL) -> np.ndarray:
     """
     given the summarized context, return a string containing the result
     """
@@ -153,10 +147,71 @@ def get_result(summarized_data: str, virus: str) -> np.ndarray:
         ],
     )
     array_return = np.full(shape=5, fill_value=np.nan)
-    elements = np.split("\n")
+    elements = completion.choices[0].message.content.split("\n")
     array_return[0] = virus
     array_return[1], array_return[2] = elements[0].split(",")
     array_return[3] = elements[1]
     array_return[4] = elements[2] if elements[2] == "" else np.nan
-    
+
     return array_return
+
+
+def get_tokens_for_result(summarized_data: str, virus: str) -> int:
+    system_message = f"""
+    Write as an output no more words than specified. 
+    
+    In total, there should be at most four lines out.
+    
+    The first one should have two numbers, separated with a comma, the next should have a citation, and the next should either be blank or have a citation, as a URL.
+    
+    If you provide an url providing information on the r naught value of the virus {virus}, please make sure it is a reliable source and included the r0 value of {virus} in the text.
+    
+    Here's some information: 
+    {summarized_data}
+    """
+    command = f"""
+    Write as an output no more words than specified. In total, there should be at most four lines out. The first one should have two numbers, separated with a comma, the next should have a citation, and the next should either be blank or have a citation, preferably as a URL.
+    
+    Write the average R0 value of {virus} in the first line. Do it in numeric form to the 2nd decimal. If the R0 values do not exist, estimate one value from the range given and put the range after that value with a comma separating them. This should be one line. If you cannot find a range, print “NaN”
+    
+    In the following two lines, put the sources, preferably as URLs, that helped lead you to this conclusion, after that end the response. If you only have one source, please put it on the first line, leaving the second one blank.
+    
+    Double-check your result. In the following line, output either “true” if both the citations relate to the average R0 value of the virus {virus}. If not, output “false”. 
+    
+    Write as an output no more words than specified. In total, there should be at most four lines out. The first one should have two numbers separated with a comma, the next should have a some form of citation, and the next should either be blank or have some form of citation. The final should have a true/false value based upon if you found the sources to be actually related when double checking your work.
+    """
+    return get_number_of_tokens(system_message + command)
+
+
+if __name__ == "__main__":
+    """
+    if NUMBER is -1, then run for all elements in the dataset
+    else if then run the thing for the number of viruses that exist
+    """
+
+    data = pd.DataFrame(
+        columns=["Virus Name", "R0 Value", "Range of R0 Values", "Source1" "Source 2"]
+    )
+    virus = "HIV"
+    Query = f"What is the R0 value of {virus}"
+    print("getting data")
+    data = get_data(Query)
+    print("data found")
+    summaried = ""
+    for link in data:
+        print("getting data from link")
+        text = asyncio.run(get_text(link))
+        print("gotten text")
+        summarized_text = f"Source: {link} \n {summarize(text)}"
+        print(summarized_text)
+        print("summarized")
+        if (
+            get_tokens_for_result(summaried, virus)
+            + get_number_of_tokens(summarized_text)
+            < CONTEXT
+        ):
+            summaried += f"\n {summarized_text}"
+        else:
+            break
+    print("printing result")
+    print(get_result(summaried))
