@@ -15,6 +15,7 @@ MODEL = "gpt-4-turbo-preview"
 CONTEXT = 128000
 MAX_OUT = 4096
 
+output = {}
 
 class bcolors:
     HEADER = "\033[95m"
@@ -73,8 +74,13 @@ def getGPTAswer(virus: str) -> str:
     final = utils.get_result(summaried, virus=virus)
     print(final)
     print(f"{bcolors.OKGREEN} RESULT PRINTED {bcolors.ENDC}")
-    return final
+    output[virus] = final
+
+virusList = open("Virus List.txt", "r")
+for line in virusList:
+    getGPTAswer(virusList.readline())
 
 
-if __name__ == "__main__":
-    getGPTAswer("Influenza A virus")
+with open('output.csv','w') as f:
+    w = csv.writer(f)
+    w.writerows(output.items())
