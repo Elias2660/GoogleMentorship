@@ -1,4 +1,4 @@
-#%%
+# %%
 
 import dotenv
 import asyncio
@@ -7,7 +7,7 @@ import numpy as np
 import csv
 
 
-#%%
+# %%
 # ? getting the api keys
 
 GOOGLE_API = dotenv.get_key("../.env", "GOOGLE_SEARCH_API")
@@ -21,6 +21,7 @@ CONTEXT = 128000
 MAX_OUT = 4096
 
 output = {}
+
 
 class bcolors:
     HEADER = "\033[95m"
@@ -79,22 +80,35 @@ def getGPTAnswer(virus: str) -> str:
     final = utils.get_result(summaried, virus=virus)
     print(final)
     print(f"{bcolors.OKGREEN} RESULT PRINTED {bcolors.ENDC}")
-    output[virus] = final
+    if final is None:
+        return """NaN
+    
+    
+    false"""
+    else:
+        return final
 
-#%%
+# %%
 
-def switch_to_csv(ans: str, virus: str) -> np.ndarray:
+
+def switch_to_csv(ans: str, virus: str) -> list:
     lines = ans.split("\n")
     numbers = [virus]
     for index in range(len(lines) - 1):
-        if index == 0:
+        if index == 0 and lines[0].strip() != "NaN":
             words = lines[index].split(",")
             print(words)
             numbers.append(words[0].strip())
             numbers.append(words[1].strip())
+        elif index == 0:
+            numbers.append("NaN")
+            numbers.append(" ")
         else:
-            numbers.append(lines[index])
-    return np.array(numbers)
+            if lines[index] == "" and len(lines) <= 2:
+                numbers.append(lines[index])
+            elif lines[index] != "":
+                numbers.append(lines[index])
+    return numbers
 
 
 def main():
@@ -104,10 +118,15 @@ def main():
             for line in virusList:
                 virus = line.strip()  # remove newline characters
                 print(f"ADDING VIRUS {virus}")
-                w.writerow(switch_to_csv(getGPTAnswer(virus), virus))  # assuming this function is defined elsewhere
+                ans = switch_to_csv(getGPTAnswer(virus), virus)
+                print(ans)
+                w.writerow(
+                    ans
+                )  # assuming this function is defined elsewhere
                 print(f"ADDED VIRUS")
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()
