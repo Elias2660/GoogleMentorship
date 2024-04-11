@@ -77,4 +77,4 @@ def getGPTAswer(virus: str) -> str:
 
 
 if __name__ == "__main__":
-    getGPTAswer("COVID-19")
+    getGPTAswer("Influenza A virus")
