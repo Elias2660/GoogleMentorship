@@ -1,8 +1,13 @@
+#%%
+
 import dotenv
 import asyncio
 import utils
 import numpy as np
+import csv
 
+
+#%%
 # ? getting the api keys
 
 GOOGLE_API = dotenv.get_key("../.env", "GOOGLE_SEARCH_API")
@@ -29,7 +34,7 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
-def getGPTAswer(virus: str) -> str:
+def getGPTAnswer(virus: str) -> str:
 
     Query = f"What is the R0 value of {virus}"
 
@@ -76,11 +81,33 @@ def getGPTAswer(virus: str) -> str:
     print(f"{bcolors.OKGREEN} RESULT PRINTED {bcolors.ENDC}")
     output[virus] = final
 
-virusList = open("Virus List.txt", "r")
-for line in virusList:
-    getGPTAswer(virusList.readline())
+#%%
+
+def switch_to_csv(ans: str, virus: str) -> np.ndarray:
+    lines = ans.split("\n")
+    numbers = [virus]
+    for index in range(len(lines) - 1):
+        if index == 0:
+            words = lines[index].split(",")
+            print(words)
+            numbers.append(words[0].strip())
+            numbers.append(words[1].strip())
+        else:
+            numbers.append(lines[index])
+    return np.array(numbers)
 
 
-with open('output.csv','w') as f:
-    w = csv.writer(f)
-    w.writerows(output.items())
+def main():
+    try:
+        with open("Virus List.txt", "r") as virusList, open("output.csv", "w") as f:
+            w = csv.writer(f)
+            for line in virusList:
+                virus = line.strip()  # remove newline characters
+                print(f"ADDING VIRUS {virus}")
+                w.writerow(switch_to_csv(getGPTAnswer(virus), virus))  # assuming this function is defined elsewhere
+                print(f"ADDED VIRUS")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
