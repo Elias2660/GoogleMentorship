@@ -42,7 +42,7 @@ networkx==3.3
 numpy==1.26.4
 openai==1.17.1
 packaging==24.0
-pandas==2.2.1
+pandas==2.2.2
 parso==0.8.4
 pexpect==4.9.0
 platformdirs==4.2.0
