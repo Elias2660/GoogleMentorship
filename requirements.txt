@@ -77,7 +77,7 @@ sympy==1.12
 tiktoken==0.6.0
 torch==2.3.0
 tornado==6.4
-tqdm==4.66.3
+tqdm==4.66.4
 traitlets==5.14.3
 typing_extensions==4.11.0
 tzdata==2024.1
