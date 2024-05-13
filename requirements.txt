@@ -50,7 +50,7 @@ pexpect==4.9.0
 platformdirs==4.2.1
 prompt-toolkit==3.0.43
 proto-plus==1.23.0
-protobuf==4.25.3
+protobuf==5.26.1
 psutil==5.9.8
 ptyprocess==0.7.0
 pure-eval==0.2.2
